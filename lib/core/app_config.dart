@@ -46,7 +46,20 @@ class AppConfig {
   static const String sensorSupabaseUrl =
       'https://YOUR-SENSOR-PROJECT.supabase.co';
   static const String sensorSupabaseAnonKey = 'YOUR_SENSOR_ANON_KEY';
-  static const String sensorTable = 'sensorData';
+
+  // Table the live vitals stream reads from. `sensor_logs` is the richest
+  // (heart rate + SpO2 + accel + GPS); switch to `device_readings` or
+  // `device_sensor_data` if that is what your firmware writes to.
+  static const String sensorTable = 'sensor_logs';
+  static const String fallEventsTable = 'fall_events';
+
+  // App-data tables (see supabase/schema.sql).
+  static const String usersTable = 'users';
+  static const String remindersTable = 'medication_reminders';
+  static const String notificationsTable = 'notifications';
+  static const String reportsTable = 'reports';
+  static const String emergencyAlertsTable = 'emergency_alerts';
+  static const String weeklyTrendsTable = 'weekly_trends';
 
   // ---------------------------------------------------------------------------
   // GEMINI AI  (vitals interpretation + medical report summaries)
