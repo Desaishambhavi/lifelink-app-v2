@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
+// Basic smoke tests for LifeLink building blocks.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// The full app relies on the service locator (Services.init), so these tests
+// exercise self-contained widgets and pure model logic instead.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:lifelink/main.dart';
+import 'package:lifelink/models/user_profile.dart';
+import 'package:lifelink/widgets/brand_mark.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('BrandMark renders', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(body: Center(child: BrandMark(size: 72))),
+    ));
+    expect(find.byType(BrandMark), findsOneWidget);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('UserProfile BMI is computed from height and weight', () {
+    const profile = UserProfile(
+      id: 'u1',
+      name: 'Test User',
+      email: 'test@lifelink.health',
+      age: 30,
+      gender: 'Other',
+      heightCm: 180,
+      weightKg: 81,
+      bloodGroup: 'O+',
+      emergencyContactName: 'Kin',
+      emergencyContactPhone: '123',
+    );
+    expect(profile.bmi, closeTo(25.0, 0.1));
+    expect(profile.bmiLabel, 'Overweight');
   });
 }
