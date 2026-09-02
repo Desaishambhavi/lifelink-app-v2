@@ -20,7 +20,7 @@ class AppConfig {
   // ---------------------------------------------------------------------------
   // While these are false the app uses mock services (no network, dummy data).
   // Enable each independently once its credentials are filled in below.
-  static const bool useSupabaseAppData = false; // profiles, reminders, alerts
+  static const bool useSupabaseAppData = true; // profiles, reminders, alerts
   static const bool useSupabaseSensorData = false; // live vitals stream
   static const bool useGeminiAi = false; // real Gemini calls
 
@@ -34,8 +34,9 @@ class AppConfig {
   // TODO: paste your APP Supabase project URL + anon key, then set
   //       useSupabaseAppData = true. The anon key is public and safe to ship
   //       (protect data with Row Level Security).
-  static const String supabaseUrl = 'https://YOUR-APP-PROJECT.supabase.co';
-  static const String supabaseAnonKey = 'YOUR_APP_ANON_KEY';
+  static const String supabaseUrl = 'https://ihoxssnrgbxkqossblrx.supabase.co';
+  static const String supabaseAnonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlob3hzc25yZ2J4a3Fvc3NibHJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTIwODksImV4cCI6MjEwMzkyODA4OX0.AxYq5PbQm1PmK2jGGOSXDAVNYiT5jAg-gZWRTxdv51E';
 
   // ---------------------------------------------------------------------------
   // SENSOR SUPABASE PROJECT  (SEPARATE — your existing ESP32 database)

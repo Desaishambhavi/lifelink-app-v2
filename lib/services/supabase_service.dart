@@ -16,8 +16,9 @@ class SupabaseService {
     if (!AppConfig.useSupabaseAppData || _appReady) return;
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      // The anon key doubles as the publishable key on current Supabase.
-      publishableKey: AppConfig.supabaseAnonKey,
+      // Classic JWT anon key (public, protected by RLS).
+      // ignore: deprecated_member_use
+      anonKey: AppConfig.supabaseAnonKey,
     );
     _appReady = true;
   }

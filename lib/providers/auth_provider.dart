@@ -26,8 +26,14 @@ class AuthProvider extends ChangeNotifier {
     _begin();
     final err = await Services.auth.signUp(name.trim(), email.trim(), password);
     _signedIn = err == null && Services.auth.isSignedIn;
+    // Signup succeeded but no session => the project requires email
+    // confirmation. Don't navigate into a session-less state.
+    if (err == null && !_signedIn) {
+      _end('Account created. Please confirm your email, then sign in.');
+      return false;
+    }
     _end(err);
-    return err == null;
+    return _signedIn;
   }
 
   Future<void> signOut() async {
