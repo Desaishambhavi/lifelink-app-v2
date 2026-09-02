@@ -16,7 +16,8 @@ class SupabaseService {
     if (!AppConfig.useSupabaseAppData || _appReady) return;
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
-      anonKey: AppConfig.supabaseAnonKey,
+      // The anon key doubles as the publishable key on current Supabase.
+      publishableKey: AppConfig.supabaseAnonKey,
     );
     _appReady = true;
   }
