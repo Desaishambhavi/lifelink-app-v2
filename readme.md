@@ -1,151 +1,145 @@
 <div align="center">
 
-# 🩺 LifeLink
+# LifeLink
 
 **Smart health monitoring, always on.**
 
-Real-time vitals from a wearable ESP32 device, AI-powered health insights, fall detection, and one-tap emergency SOS — all in one Flutter app.
-
-![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-^3.5.0-0175C2?logo=dart&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-Backend-FFCA28?logo=firebase&logoColor=black)
-![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-4285F4?logo=google&logoColor=white)
-![License](https://img.shields.io/badge/License-Educational-lightgrey)
+A Flutter health-monitoring app with a glass, iOS-inspired interface: live vitals,
+AI health insights, fall detection, and one-tap emergency SOS. Built mock-first,
+so it runs end-to-end with no backend, and swaps to Supabase + Gemini from a single
+config file.
 
 </div>
 
 ---
 
-## 📖 Overview
+## Overview
 
-**LifeLink** is a Flutter mobile application for continuous, real-time health monitoring. It pairs with an **ESP32-based wearable device** that streams biometric data — heart rate, blood-oxygen saturation (SpO₂), motion, and GPS location — to Firebase, where the app consumes it live. On top of raw monitoring, LifeLink layers **AI analysis** (Google Gemini 2.5 Flash) for both live vitals interpretation and medical-report summarization, plus safety features like **automatic fall detection** and **emergency SOS alerts**.
+LifeLink pairs with an ESP32 wearable that streams heart rate, blood-oxygen (SpO2),
+motion, and GPS. On top of live monitoring it layers AI analysis (vitals + medical
+reports), fall detection, and emergency alerts.
 
-Built as a college / hackathon major project.
+This build is a ground-up rewrite focused on a distinctive, professional interface —
+a deep navy-to-frost palette, real backdrop-blur glassmorphism, hand-drawn iconography,
+and motion instead of emoji. Every backend is behind a clean interface with a working
+mock implementation, so the whole app is usable immediately and becomes "real" by
+filling in credentials.
 
----
-
-## ✨ Features
+## Features
 
 | Feature | Description |
-|---------|-------------|
-| ❤️ **Real-time Vitals** | Live heart rate (BPM) and SpO₂ streamed from the ESP32 via Firebase Realtime Database |
-| 🗺️ **Live Location** | GPS coordinates from the wearable plotted on an in-app Google Map |
-| 🤖 **AI Vitals Analysis** | Gemini 2.5 Flash interprets current vitals in plain language, with text-to-speech read-aloud |
-| 📄 **AI Health Reports** | Upload a PDF medical report and receive a Gemini-generated summary in **English, Hindi, Marathi, or Kannada** — with TTS playback and PDF export |
-| 🚨 **Fall Detection** | Automatic alert screen triggered when accelerometer G-force exceeds threshold |
-| 🆘 **Emergency SOS** | One-tap alert written to Firebase with the user's emergency contact info |
-| 📊 **Health Analytics** | `fl_chart` visualizations of recent heart rate & SpO₂ history and weekly trends |
-| 💊 **Medication Reminders** | Schedule once / daily / weekly reminders backed by local push notifications |
-| 👤 **Health Profile** | User profile (age, gender, height, weight, BMI, blood group, emergency contact) stored in Firestore |
+|--------|-------------|
+| Real-time vitals | Live heart rate and SpO2 with animated gauges and trend sparklines |
+| Live location | Wearer position on an animated radar panel (no map key required) |
+| AI vitals analysis | On-demand plain-language reading of current vitals, with text-to-speech |
+| AI health reports | Upload a PDF and get a summary in English, Hindi, Marathi, or Kannada — TTS + PDF export |
+| Fall detection | Full-screen alert with an auto-SOS countdown |
+| Emergency SOS | Press-and-hold to alert your emergency contact with live location |
+| Health analytics | Heart-rate and SpO2 line charts plus weekly trend bars (fl_chart) |
+| Medication reminders | Once / daily / weekly schedules with next-due surfacing |
+| Health profile | Age, gender, height, weight, BMI, blood group, emergency contact |
+| Notification centre | In-app alerts for vitals, reminders, falls, SOS, and reports |
 
----
+## Design system
 
-## 🛠️ Tech Stack
+- **Palette** — a single navy-to-frost ramp: `#021024`, `#052659`, `#5483B3`, `#7DA0CA`, `#C1E8FF`.
+  Restrained safety accents (teal / amber / coral) appear only for critical states.
+- **Glassmorphism** — real `BackdropFilter` blur, hairline strokes, top-light sheen, depth shadows.
+- **Motion, not emoji** — drifting background orbs, spring-press feedback, animated rings,
+  radar sweep, heartbeat pulses, and staggered screen entrances. No emoji anywhere.
+- **Typography** — Manrope, tuned for a clean iOS feel.
+
+## Tech stack
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | Flutter 3.x (Dart `^3.5.0`) |
-| **State Management** | `provider` |
-| **Authentication** | Firebase Auth |
-| **Databases** | Firebase Realtime Database (live sensor data) + Cloud Firestore (profiles) |
-| **AI** | Google Gemini 2.5 Flash (`google_generative_ai` + REST) |
-| **Charts** | `fl_chart` |
-| **Maps** | `google_maps_flutter` |
-| **Notifications** | `flutter_local_notifications` |
-| **Text-to-Speech** | `flutter_tts` |
-| **Files / PDF** | `file_selector`, `pdf`, `open_filex`, `path_provider` |
-| **Hardware** | ESP32 + MAX30102 (HR & SpO₂) + MPU6050 (accelerometer) + GPS module |
+| Framework | Flutter 3.x (Dart 3) |
+| State | `provider` |
+| Backend (optional) | Supabase (Auth, Postgres, Realtime) |
+| AI (optional) | Google Gemini via a Supabase Edge Function proxy |
+| Charts | `fl_chart` |
+| Speech | `flutter_tts` |
+| Files / PDF | `file_picker`, `pdf`, `printing` |
+| Local storage | `shared_preferences` |
 
----
+## Architecture
 
-## 📁 Project Structure
+Everything the app talks to is an interface with two implementations — a **mock**
+(default) and a **real** one — chosen in one place, `lib/services/service_locator.dart`,
+based on flags in `lib/core/app_config.dart`.
+
+```
+UI (screens) -> Providers (ChangeNotifier) -> Services (interfaces)
+                                               ├─ Mock*  (default, no network)
+                                               └─ Supabase* / Gemini (flag-gated)
+```
+
+- `SensorSource` — live vitals. `MockSensorSource` streams believable random-walk
+  data; `SupabaseSensorSource` subscribes to your sensor table via Realtime.
+- `AiService` — `MockAiService` (context-aware, localized) or `GeminiAiService`.
+- Repositories — Profile, Reminder, Notification, Report, Emergency (SharedPreferences
+  mock vs Supabase).
+
+Because it is mock-first, the app is fully explorable before any credentials exist.
+
+## Getting started
+
+Prerequisites: Flutter SDK (Dart 3), and Chrome or an Android device/emulator.
+
+```bash
+flutter pub get
+
+# Web (fastest way to see the glass UI)
+flutter run -d chrome
+
+# Android
+flutter run
+```
+
+**Demo login:** any email and any password of 4+ characters. The pre-filled
+`demo@lifelink.health` works out of the box. Try the "Test fall alert" tile on the
+dashboard to see the fall/SOS flow.
+
+## Connecting a backend
+
+The app ships in mock mode. To go live, see **[docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)**:
+
+1. Create a Supabase project and run **[supabase/schema.sql](supabase/schema.sql)**
+   (recreates the full database and adds the app's reminder/notification tables,
+   with RLS and triggers).
+2. Paste your URL + anon key into `lib/core/app_config.dart` and flip
+   `useSupabaseAppData` to `true`.
+3. Optionally point the (separate) sensor project and enable `useSupabaseSensorData`,
+   and deploy the Gemini proxy and enable `useGeminiAi`.
+
+Nothing in the app touches your existing sensor database until you opt in.
+
+## Project structure
 
 ```
 lib/
-├── main.dart               # App entry, MultiProvider + theme setup
-├── firebase_options.dart   # Generated Firebase config
-├── core/                   # App colors, text styles, routes
-├── models/                 # Health data, user profile, notification, weekly trend
-├── providers/              # Auth, Health, Profile, History, WeeklyTrend, Notification, Report
-├── services/               # firebase_service, auth_service, notification_service
-├── screens/
-│   ├── landing/            # Onboarding landing screen
-│   ├── auth/               # Login / signup (+ auth wrapper)
-│   ├── home/               # Dashboard: vitals cards, live map, AI analysis
-│   ├── analytics/          # Heart rate & SpO₂ charts
-│   ├── health_report/      # AI PDF report summarization
-│   ├── reminder/           # Medication reminders
-│   ├── emergency/          # Emergency SOS screen
-│   ├── fall_alert/         # Fall detection alert screen
-│   ├── notifications/      # In-app notifications list
-│   ├── profile/            # User health profile
-│   └── main_shell.dart     # Bottom-nav shell (Home, Reminder, Analytics, Report, Profile)
-└── widgets/                # Reusable UI components
+├── main.dart                 # Providers, theme, routing, auth gate
+├── core/                     # app_config (swap points), colors, gradients, theme, routes
+├── models/                   # health_data, user_profile, reminder, notification, trend, report, alert
+├── services/
+│   ├── sensor/               # SensorSource: mock + supabase
+│   ├── ai/                   # AiService: mock + gemini
+│   ├── data/                 # profile/reminder/notification/report/emergency repositories
+│   ├── auth_service.dart     # mock + supabase auth
+│   ├── tts_service.dart      # read-aloud
+│   └── service_locator.dart  # mock-vs-real wiring
+├── providers/                # auth, health, profile, reminder, notification, report, trend, emergency
+├── screens/                  # landing, auth, home, analytics, health_report, reminder,
+│                             # emergency, fall_alert, notifications, profile, main_shell
+└── widgets/                  # glass card/scaffold/nav/controls, vitals visuals, radar, brand mark
+supabase/schema.sql           # full database DDL
+docs/                         # SUPABASE_SETUP.md, ORIGINAL_SPEC.md
 ```
-
----
-
-## 🔌 Data Flow & Firebase Schema
-
-The ESP32 firmware reads sensors and pushes data to Firebase; the app subscribes to real-time streams.
-
-**Realtime Database**
-- `/sensorData/{pushKey}` — `{ heartRate, spo2, spo2Valid, timestamp, acceleration: {x, y, z, total}, gps: {latitude, longitude, satellites} }` (app reads the latest / last 20 entries)
-- `/sensorData/fall_detected` — fall-detection flag
-- `/weekly_trends` — Mon–Sun averages (heart rate, SpO₂, stress, hydration)
-- `/emergency_alerts/{pushKey}` — SOS events
-
-**Cloud Firestore**
-- `/users/{uid}` — name, email, age, gender, height, weight, bmi, blood_group, emergency_contact
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Flutter SDK `^3.5.0`
-- A Firebase project (Auth, Realtime Database, Firestore enabled)
-- A Google Gemini API key
-- (Optional) ESP32 wearable running the LifeLink firmware
-
-### Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yashpattar09/lifelink.git
-   cd lifelink
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Configure Firebase**
-   - Run `flutterfire configure` (regenerates `lib/firebase_options.dart`), or
-   - Manually add `android/app/google-services.json` (and iOS `GoogleService-Info.plist`).
-
-4. **Deploy the Gemini proxy** (keeps the Gemini key off the client)
-   ```bash
-   supabase functions deploy gemini-proxy
-   supabase secrets set GEMINI_API_KEY=your_new_gemini_key
-   ```
-   The Flutter app calls this Edge Function; the key lives only as a Supabase secret.
-
-5. **Add the remaining key**
-   - Add your **Google Maps API key** to `android/app/src/main/AndroidManifest.xml` for the live-location map.
-
-6. **Run**
-   ```bash
-   flutter run
-   ```
-
-> 🔒 **Security note:** The Gemini API key is **never** shipped in the app — it lives server-side in the `gemini-proxy` Supabase Edge Function (`supabase/functions/gemini-proxy/`). Never commit real keys. The Supabase `anonKey` in `lib/core/supabase_config.dart` is a public key protected by Row Level Security and is safe to ship.
 
 ---
 
 <div align="center">
 
-*Built for health, designed for life.* ❤️
+Built for health, designed for life.
 
 </div>
