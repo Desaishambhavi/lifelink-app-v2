@@ -12,7 +12,7 @@ class AppConfig {
   AppConfig._();
 
   /// Human-facing app metadata.
-  static const String appName = 'LifeLink';
+  static const String appName = 'LifeLink v2';
   static const String appTagline = 'Smart health monitoring, always on.';
 
   // ---------------------------------------------------------------------------

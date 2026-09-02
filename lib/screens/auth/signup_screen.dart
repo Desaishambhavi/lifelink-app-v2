@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_routes.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/brand_mark.dart';
 import '../../widgets/entrance.dart';
 import '../../widgets/glass_controls.dart';
 import '../../widgets/glass_scaffold.dart';
@@ -64,19 +63,18 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             const SizedBox(height: 28),
             Entrance(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const BrandMark(size: 56, glow: false),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Create account',
-                          style: Theme.of(context).textTheme.headlineMedium),
-                      const Text('Start monitoring in seconds',
-                          style: TextStyle(color: AppColors.textSecondary)),
-                    ],
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: Image.asset('assets/logo.png', fit: BoxFit.contain),
                   ),
+                  const SizedBox(height: 22),
+                  Text('Create account',
+                      style: Theme.of(context).textTheme.headlineMedium),
+                  const Text('Start monitoring in seconds',
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             ),

@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import '../../core/app_colors.dart';
 import '../../core/app_config.dart';
 import '../../core/app_routes.dart';
-import '../../widgets/brand_mark.dart';
 import '../../widgets/entrance.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/glass_controls.dart';
 import '../../widgets/glass_scaffold.dart';
-import '../../widgets/vitals_widgets.dart';
 
 /// The first impression: a calm hero, three capability highlights, and two
 /// clear paths forward. Everything eases in on load.
@@ -42,29 +40,20 @@ class LandingScreen extends StatelessWidget {
           children: [
             const Spacer(flex: 2),
             Entrance(
-              child: HeartbeatPulse(
-                size: 150,
-                color: AppColors.frost,
-                child: const BrandMark(size: 96),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: Image.asset('assets/logo.png', fit: BoxFit.contain),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 6),
             Entrance(
-              delay: const Duration(milliseconds: 120),
-              child: Text(
-                AppConfig.appName,
-                style: Theme.of(context).textTheme.displayLarge,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Entrance(
-              delay: const Duration(milliseconds: 200),
+              delay: const Duration(milliseconds: 160),
               child: Text(
                 AppConfig.appTagline,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.4,
                 ),
