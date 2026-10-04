@@ -60,7 +60,7 @@ class ReminderScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _AddReminderSheet(),
+      builder: (_) => const _ReminderSheet(),
     );
   }
 }
@@ -83,14 +83,14 @@ class _NextDueCard extends StatelessWidget {
               gradient: AppGradients.accent,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.medication_liquid_rounded, color: AppColors.abyss),
+            child: Icon(Icons.medication_liquid_rounded, color: AppColors.abyss),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('NEXT DUE',
+                Text('NEXT DUE',
                     style: TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 11,
@@ -99,13 +99,13 @@ class _NextDueCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(reminder.medicationName,
                     style: Theme.of(context).textTheme.titleLarge),
-                Text('${reminder.dosage} · ${reminder.repeat.label}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                Text('${reminder.dosage} · ${reminder.repeatLabel}',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               ],
             ),
           ),
           Text(time,
-              style: const TextStyle(
+              style: TextStyle(
                   color: AppColors.frost, fontSize: 18, fontWeight: FontWeight.w800)),
         ],
       ),
@@ -123,6 +123,12 @@ class _ReminderTile extends StatelessWidget {
     final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
     return GlassCard(
       padding: const EdgeInsets.all(16),
+      onTap: () => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _ReminderSheet(existing: reminder),
+      ),
       child: Row(
         children: [
           Opacity(
@@ -135,7 +141,7 @@ class _ReminderTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.glassStroke),
               ),
-              child: const Icon(Icons.medication_rounded, color: AppColors.mist, size: 20),
+              child: Icon(Icons.medication_rounded, color: AppColors.mist, size: 20),
             ),
           ),
           const SizedBox(width: 14),
@@ -144,11 +150,11 @@ class _ReminderTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(reminder.medicationName,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 14.5)),
                 const SizedBox(height: 2),
-                Text('$time · ${reminder.dosage} · ${reminder.repeat.label}',
-                    style: const TextStyle(color: AppColors.textTertiary, fontSize: 12.5)),
+                Text('$time · ${reminder.dosage} · ${reminder.repeatLabel}',
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 12.5)),
               ],
             ),
           ),
@@ -161,7 +167,7 @@ class _ReminderTile extends StatelessWidget {
             onChanged: (_) => provider.toggle(reminder),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.textTertiary, size: 20),
+            icon: Icon(Icons.delete_outline_rounded, color: AppColors.textTertiary, size: 20),
             onPressed: () => provider.remove(reminder.id),
           ),
         ],
@@ -179,35 +185,54 @@ class _EmptyState extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       child: Column(
         children: [
-          const Icon(Icons.medication_outlined, color: AppColors.textTertiary, size: 36),
+          Icon(Icons.medication_outlined, color: AppColors.textTertiary, size: 36),
           const SizedBox(height: 12),
-          const Text('No reminders yet',
+          Text('No reminders yet',
               style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           Text('Add your first medication reminder to stay on track.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
         ],
       ),
     );
   }
 }
 
-class _AddReminderSheet extends StatefulWidget {
-  const _AddReminderSheet();
+class _ReminderSheet extends StatefulWidget {
+  const _ReminderSheet({this.existing});
+
+  /// When non-null the sheet edits this reminder instead of creating a new one.
+  final MedicationReminder? existing;
 
   @override
-  State<_AddReminderSheet> createState() => _AddReminderSheetState();
+  State<_ReminderSheet> createState() => _ReminderSheetState();
 }
 
-class _AddReminderSheetState extends State<_AddReminderSheet> {
+class _ReminderSheetState extends State<_ReminderSheet> {
   final _name = TextEditingController();
   final _dosage = TextEditingController();
-  TimeOfDay _time = const TimeOfDay(hour: 9, minute: 0);
-  ReminderRepeat _repeat = ReminderRepeat.daily;
-  int _weekday = DateTime.monday;
+  late TimeOfDay _time;
+  late Set<int> _days;
 
-  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+  bool get _isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    if (e != null) {
+      _name.text = e.medicationName;
+      _dosage.text = e.dosage;
+      _time = TimeOfDay(hour: e.hour, minute: e.minute);
+      _days = {...e.days};
+    } else {
+      _time = const TimeOfDay(hour: 9, minute: 0);
+      _days = {1, 2, 3, 4, 5, 6, 7}; // default: every day
+    }
+  }
 
   @override
   void dispose() {
@@ -216,20 +241,50 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     super.dispose();
   }
 
+  void _setPreset(Set<int> days) => setState(() => _days = {...days});
+
+  void _toggleDay(int weekday) => setState(() {
+        if (!_days.remove(weekday)) _days.add(weekday);
+      });
+
+  bool _presetActive(Set<int> preset) =>
+      _days.length == preset.length && _days.containsAll(preset);
+
+  String get _repeatSummary {
+    if (_days.isEmpty) return 'Reminds once, at the next ${_time.format(context)}.';
+    if (_days.length == 7) return 'Repeats every day.';
+    const names = ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final sorted = _days.toList()..sort();
+    return 'Repeats on ${sorted.map((d) => names[d]).join(', ')}.';
+  }
+
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) return;
-    final reminder = MedicationReminder(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      medicationName: _name.text.trim(),
-      dosage: _dosage.text.trim().isEmpty ? '1 dose' : _dosage.text.trim(),
-      hour: _time.hour,
-      minute: _time.minute,
-      repeat: _repeat,
-      weekday: _weekday,
-      createdAt: DateTime.now(),
-    );
-    await context.read<ReminderProvider>().add(reminder);
-    if (mounted) Navigator.of(context).pop();
+    final provider = context.read<ReminderProvider>();
+    final navigator = Navigator.of(context);
+    final name = _name.text.trim();
+    final dosage = _dosage.text.trim().isEmpty ? '1 dose' : _dosage.text.trim();
+    final e = widget.existing;
+    if (e != null) {
+      await provider.update(e.copyWith(
+        medicationName: name,
+        dosage: dosage,
+        hour: _time.hour,
+        minute: _time.minute,
+        days: {..._days},
+      ));
+    } else {
+      await provider.add(MedicationReminder(
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        medicationName: name,
+        dosage: dosage,
+        hour: _time.hour,
+        minute: _time.minute,
+        days: {..._days},
+        createdAt: DateTime.now(),
+      ));
+    }
+    if (mounted) navigator.pop();
   }
 
   @override
@@ -239,7 +294,7 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -247,73 +302,108 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
             ),
           ),
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: AppColors.white(0.2),
-                    borderRadius: BorderRadius.circular(3),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: AppColors.white(0.2),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text('New reminder', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 18),
-              _field(_name, 'Medication name', Icons.medication_rounded),
-              const SizedBox(height: 14),
-              _field(_dosage, 'Dosage (e.g. 500 mg)', Icons.science_outlined),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: _pickerTile(
-                      icon: Icons.schedule_rounded,
-                      label: 'Time',
-                      value: _time.format(context),
-                      onTap: () async {
-                        final picked = await showTimePicker(context: context, initialTime: _time);
-                        if (picked != null) setState(() => _time = picked);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              const Text('REPEAT',
-                  style: TextStyle(
-                      color: AppColors.textTertiary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2)),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  for (final r in ReminderRepeat.values)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 10),
-                      child: _chip(r.label, _repeat == r, () => setState(() => _repeat = r)),
-                    ),
-                ],
-              ),
-              if (_repeat == ReminderRepeat.weekly) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                Text(_isEdit ? 'Edit reminder' : 'New reminder',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 18),
+                _field(_name, 'Medication name', Icons.medication_rounded),
+                const SizedBox(height: 14),
+                _field(_dosage, 'Dosage (e.g. 500 mg)', Icons.science_outlined),
+                const SizedBox(height: 18),
+                _pickerTile(
+                  icon: Icons.schedule_rounded,
+                  label: 'Time',
+                  value: _time.format(context),
+                  onTap: () async {
+                    final picked =
+                        await showTimePicker(context: context, initialTime: _time);
+                    if (picked != null) setState(() => _time = picked);
+                  },
+                ),
+                const SizedBox(height: 18),
+                Text('REPEAT',
+                    style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2)),
+                const SizedBox(height: 10),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 10,
+                  runSpacing: 10,
                   children: [
-                    for (var i = 0; i < _days.length; i++)
-                      _chip(_days[i], _weekday == i + 1, () => setState(() => _weekday = i + 1)),
+                    _chip('Once', _days.isEmpty, () => _setPreset(const {})),
+                    _chip(
+                        'Every day',
+                        _presetActive(const {1, 2, 3, 4, 5, 6, 7}),
+                        () => _setPreset(const {1, 2, 3, 4, 5, 6, 7})),
+                    _chip('Weekdays', _presetActive(const {1, 2, 3, 4, 5}),
+                        () => _setPreset(const {1, 2, 3, 4, 5})),
+                    _chip('Weekends', _presetActive(const {6, 7}),
+                        () => _setPreset(const {6, 7})),
                   ],
                 ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (var i = 0; i < _dayLetters.length; i++)
+                      _dayToggle(_dayLetters[i], i + 1),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(_repeatSummary,
+                    style:
+                        TextStyle(color: AppColors.textTertiary, fontSize: 12.5)),
+                const SizedBox(height: 24),
+                GlassButton(
+                    label: _isEdit ? 'Save changes' : 'Save reminder',
+                    icon: Icons.check_rounded,
+                    onPressed: _save),
               ],
-              const SizedBox(height: 24),
-              GlassButton(label: 'Save reminder', icon: Icons.check_rounded, onPressed: _save),
-            ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dayToggle(String letter, int weekday) {
+    final selected = _days.contains(weekday);
+    return GestureDetector(
+      onTap: () => _toggleDay(weekday),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? AppColors.frost : AppColors.white(0.06),
+          border: Border.all(
+              color: selected ? AppColors.frost : AppColors.glassStroke),
+        ),
+        child: Text(
+          letter,
+          style: TextStyle(
+            color: selected ? AppColors.abyss : AppColors.textSecondary,
+            fontWeight: FontWeight.w800,
+            fontSize: 14,
           ),
         ),
       ),
@@ -323,21 +413,21 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
   Widget _field(TextEditingController c, String hint, IconData icon) {
     return TextField(
       controller: c,
-      style: const TextStyle(color: AppColors.frost, fontWeight: FontWeight.w600),
+      style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w600),
       cursorColor: AppColors.frost,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textTertiary),
+        hintStyle: TextStyle(color: AppColors.textTertiary),
         prefixIcon: Icon(icon, color: AppColors.mist, size: 20),
         filled: true,
         fillColor: AppColors.white(0.06),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.glassStroke),
+          borderSide: BorderSide(color: AppColors.glassStroke),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.glassStroke),
+          borderSide: BorderSide(color: AppColors.glassStroke),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -366,10 +456,10 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
           children: [
             Icon(icon, color: AppColors.mist, size: 20),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+            Text(label, style: TextStyle(color: AppColors.textSecondary)),
             const Spacer(),
             Text(value,
-                style: const TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
+                style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
           ],
         ),
       ),

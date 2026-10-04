@@ -51,7 +51,7 @@ class LandingScreen extends StatelessWidget {
               child: Text(
                 AppConfig.appTagline,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -131,7 +131,7 @@ class _FeatureRow extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   body,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12.5,
                     height: 1.35,

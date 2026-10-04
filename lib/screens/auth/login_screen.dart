@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 22),
                   Text('Welcome back',
                       style: Theme.of(context).textTheme.headlineMedium),
-                  const Text('Sign in to continue',
+                  Text('Sign in to continue',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
@@ -134,12 +134,12 @@ class _LoginScreenState extends State<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('New to LifeLink?',
+                Text('New to LifeLink?',
                     style: TextStyle(color: AppColors.textSecondary)),
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed(AppRoutes.signup),
-                  child: const Text('Create account',
+                  child: Text('Create account',
                       style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
                 ),
               ],

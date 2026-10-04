@@ -18,6 +18,11 @@ abstract class SensorSource {
   /// The last [count] readings, newest last.
   List<HealthData> recent([int count = 20]);
 
+  /// Fetch up to [count] most recent readings (oldest→newest) for analytics.
+  /// Unlike [recent], this may hit the backing store rather than the small
+  /// in-memory live buffer, so it can return a longer window (e.g. 100).
+  Future<List<HealthData>> history({int count = 100});
+
   /// Begin producing/subscribing to data.
   Future<void> start();
 

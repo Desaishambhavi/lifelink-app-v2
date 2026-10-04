@@ -73,7 +73,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   const SizedBox(height: 22),
                   Text('Create account',
                       style: Theme.of(context).textTheme.headlineMedium),
-                  const Text('Start monitoring in seconds',
+                  Text('Start monitoring in seconds',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
@@ -165,12 +165,12 @@ class _SignupScreenState extends State<SignupScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Already have an account?',
+                Text('Already have an account?',
                     style: TextStyle(color: AppColors.textSecondary)),
                 TextButton(
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-                  child: const Text('Sign in',
+                  child: Text('Sign in',
                       style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
                 ),
               ],

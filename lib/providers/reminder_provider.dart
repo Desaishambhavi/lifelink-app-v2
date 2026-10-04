@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/medication_reminder.dart';
+import '../services/notification_service.dart';
 import '../services/service_locator.dart';
 
 /// Manages the medication reminder list.
@@ -24,6 +25,12 @@ class ReminderProvider extends ChangeNotifier {
     _items = await Services.reminders.list();
     _loading = false;
     notifyListeners();
+    // Keep the scheduled OS notifications in sync with the current list.
+    // scheduleReminder cancels-then-(re)schedules per id, so this covers
+    // add / edit / enable / disable in one pass.
+    for (final r in _items) {
+      await NotificationService.scheduleReminder(r);
+    }
   }
 
   Future<void> add(MedicationReminder reminder) async {
@@ -42,6 +49,7 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   Future<void> remove(String id) async {
+    await NotificationService.cancelReminder(id);
     await Services.reminders.remove(id);
     await load();
   }

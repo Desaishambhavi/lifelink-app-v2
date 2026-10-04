@@ -104,25 +104,25 @@ class _NotificationTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(item.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 14.5)),
                     ),
                     if (!item.read)
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                             color: AppColors.mist, shape: BoxShape.circle),
                       ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(item.body,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.textSecondary, fontSize: 12.5, height: 1.4)),
                 const SizedBox(height: 8),
                 Text(_ago(item.timestamp),
-                    style: const TextStyle(color: AppColors.textTertiary, fontSize: 11.5)),
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 11.5)),
               ],
             ),
           ),
@@ -154,15 +154,15 @@ class _Empty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.notifications_off_outlined, color: AppColors.textTertiary, size: 40),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text('No notifications',
               style: TextStyle(color: AppColors.frost, fontWeight: FontWeight.w700)),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text("You're all caught up.",
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/app_notification.dart';
+import '../services/notification_service.dart';
 import '../services/service_locator.dart';
 
 /// Backs the notification centre and the unread badge.
@@ -22,6 +23,8 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> push(AppNotification notification) async {
     await Services.notifications.add(notification);
+    // Mirror it to a real OS notification (fall, SOS, reports, …).
+    await NotificationService.showForNotification(notification);
     await load();
   }
 

@@ -37,7 +37,7 @@ class GlassTextField extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textTertiary,
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -51,7 +51,7 @@ class GlassTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           textInputAction: textInputAction,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.frost,
             fontSize: 15,
             fontWeight: FontWeight.w600,
@@ -59,7 +59,7 @@ class GlassTextField extends StatelessWidget {
           cursorColor: AppColors.frost,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.textTertiary),
+            hintStyle: TextStyle(color: AppColors.textTertiary),
             prefixIcon: icon == null
                 ? null
                 : Icon(icon, color: AppColors.mist, size: 20),

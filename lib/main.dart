@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/app_config.dart';
 import 'core/app_routes.dart';
 import 'core/app_theme.dart';
+import 'providers/analytics_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/emergency_provider.dart';
 import 'providers/health_provider.dart';
@@ -12,6 +13,8 @@ import 'providers/notification_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/report_provider.dart';
+import 'providers/saved_report_provider.dart';
+import 'providers/theme_provider.dart';
 import 'providers/weekly_trend_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
@@ -19,6 +22,7 @@ import 'screens/emergency/emergency_screen.dart';
 import 'screens/landing/landing_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/notifications/notifications_screen.dart';
+import 'services/notification_service.dart';
 import 'services/service_locator.dart';
 
 Future<void> main() async {
@@ -29,32 +33,40 @@ Future<void> main() async {
     statusBarBrightness: Brightness.dark,
   ));
   await Services.init();
-  runApp(const LifeLinkApp());
+  await NotificationService.init();
+  final light = await ThemeProvider.loadPreference();
+  runApp(LifeLinkApp(initialLight: light));
 }
 
 class LifeLinkApp extends StatelessWidget {
-  const LifeLinkApp({super.key});
+  const LifeLinkApp({super.key, required this.initialLight});
+
+  final bool initialLight;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider(initialLight)),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HealthProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => SavedReportProvider()),
         ChangeNotifierProvider(create: (_) => WeeklyTrendProvider()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
+        ChangeNotifierProvider(create: (_) => AnalyticsProvider()),
       ],
-      child: MaterialApp(
-        title: AppConfig.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.dark,
-        themeMode: ThemeMode.dark,
-        home: const AuthGate(),
-        onGenerateRoute: _onGenerateRoute,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) => MaterialApp(
+          title: AppConfig.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme(themeProvider.isLight),
+          home: const AuthGate(),
+          onGenerateRoute: _onGenerateRoute,
+        ),
       ),
     );
   }

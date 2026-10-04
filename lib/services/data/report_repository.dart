@@ -16,7 +16,7 @@ abstract class ReportRepository {
 /// Reports persisted locally (summary text kept, source PDF bytes are not).
 class MockReportRepository implements ReportRepository {
   static const _key = 'll_reports';
-  final _enc = ReportEncryptionService();
+  final _enc = ReportEncryptionService.instance;
 
   Future<List<HealthReport>> _read() async {
     final prefs = await SharedPreferences.getInstance();
@@ -76,7 +76,7 @@ class MockReportRepository implements ReportRepository {
 /// Reports stored in the Supabase `reports` table.
 class SupabaseReportRepository implements ReportRepository {
   final _client = SupabaseService.instance.app;
-  final _enc = ReportEncryptionService();
+  final _enc = ReportEncryptionService.instance;
   String? get _email => _client.auth.currentUser?.email;
 
   @override

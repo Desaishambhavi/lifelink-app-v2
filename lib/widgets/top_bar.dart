@@ -6,6 +6,7 @@ import '../core/app_gradients.dart';
 import '../core/app_routes.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
+import '../providers/theme_provider.dart';
 import 'glass_controls.dart';
 import 'pressable.dart';
 
@@ -27,6 +28,7 @@ class TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final unread = context.watch<NotificationProvider>().unreadCount;
     final initials = context.watch<ProfileProvider>().profile?.initials ?? 'LL';
+    final isLight = context.watch<ThemeProvider>().isLight;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,7 +40,7 @@ class TopBar extends StatelessWidget {
               if (eyebrow != null) ...[
                 Text(
                   eyebrow!.toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textTertiary,
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
@@ -56,6 +58,11 @@ class TopBar extends StatelessWidget {
             ],
           ),
         ),
+        GlassIconButton(
+          icon: isLight ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+          onTap: () => context.read<ThemeProvider>().toggle(),
+        ),
+        const SizedBox(width: 12),
         GlassIconButton(
           icon: Icons.notifications_none_rounded,
           badge: unread,
@@ -75,7 +82,7 @@ class TopBar extends StatelessWidget {
             ),
             child: Text(
               initials,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.abyss,
                 fontSize: 15,
                 fontWeight: FontWeight.w800,

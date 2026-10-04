@@ -51,6 +51,13 @@ class ReportProvider extends ChangeNotifier {
     return _current!;
   }
 
+  Future<void> delete(HealthReport report) async {
+    await Services.reports.delete(report.id);
+    if (_current?.id == report.id) _current = null;
+    _reports = await Services.reports.list();
+    notifyListeners();
+  }
+
   void selectLanguage(ReportLanguage language) {
     if (_current == null) return;
     _current = _current!.copyWith(language: language);

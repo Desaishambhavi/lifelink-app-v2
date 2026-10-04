@@ -1,38 +1,41 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Reusable gradients that give the app its layered, glass-over-deep-water feel.
+/// Reusable gradients that give the app its layered, glass-over-deep feel.
+///
+/// These are getters (not consts) because [AppColors] now resolves per theme
+/// mode at runtime — the gradients follow whichever palette is active.
 class AppGradients {
   AppGradients._();
 
-  /// Primary full-screen backdrop: abyss at the top easing into deep blue.
-  static const LinearGradient background = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [AppColors.abyss, AppColors.midnight, AppColors.deep],
-    stops: [0.0, 0.5, 1.0],
-  );
+  /// Primary full-screen backdrop: base easing into the panel tone.
+  static LinearGradient get background => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [AppColors.abyss, AppColors.midnight, AppColors.deep],
+        stops: const [0.0, 0.5, 1.0],
+      );
 
   /// Diagonal sheen laid over glass surfaces so they catch the "light".
-  static const LinearGradient glassSheen = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0x33FFFFFF), Color(0x05FFFFFF)],
-  );
+  static LinearGradient get glassSheen => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.white(0.20), AppColors.white(0.02)],
+      );
 
   /// Steel -> mist accent used for progress arcs and highlights.
-  static const LinearGradient accent = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [AppColors.mist, AppColors.steel],
-  );
+  static LinearGradient get accent => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.mist, AppColors.steel],
+      );
 
   /// Bright frost -> mist fill for primary call-to-action buttons.
-  static const LinearGradient frostButton = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [AppColors.frost, AppColors.mist],
-  );
+  static LinearGradient get frostButton => LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.frost, AppColors.mist],
+      );
 
   /// Radial glow used behind hero elements (heartbeat, SOS).
   static RadialGradient glow(Color color) => RadialGradient(

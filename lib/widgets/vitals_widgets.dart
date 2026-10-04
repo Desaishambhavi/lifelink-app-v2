@@ -88,13 +88,13 @@ class Sparkline extends StatelessWidget {
   const Sparkline({
     super.key,
     required this.values,
-    this.color = AppColors.frost,
+    this.color,
     this.height = 44,
     this.fill = true,
   });
 
   final List<double> values;
-  final Color color;
+  final Color? color;
   final double height;
   final bool fill;
 
@@ -103,7 +103,9 @@ class Sparkline extends StatelessWidget {
     return SizedBox(
       height: height,
       width: double.infinity,
-      child: CustomPaint(painter: _SparkPainter(values, color, fill)),
+      child: CustomPaint(
+        painter: _SparkPainter(values, color ?? AppColors.frost, fill),
+      ),
     );
   }
 }
@@ -167,12 +169,12 @@ class HeartbeatPulse extends StatefulWidget {
     super.key,
     required this.child,
     this.size = 120,
-    this.color = AppColors.frost,
+    this.color,
   });
 
   final Widget child;
   final double size;
-  final Color color;
+  final Color? color;
 
   @override
   State<HeartbeatPulse> createState() => _HeartbeatPulseState();
@@ -207,7 +209,7 @@ class _HeartbeatPulseState extends State<HeartbeatPulse>
             animation: _c,
             builder: (context, _) => CustomPaint(
               size: Size.square(widget.size),
-              painter: _PulsePainter(_c.value, widget.color),
+              painter: _PulsePainter(_c.value, widget.color ?? AppColors.frost),
             ),
           ),
           widget.child,

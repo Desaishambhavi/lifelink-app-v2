@@ -43,6 +43,33 @@ class MockSensorSource implements SensorSource {
   }
 
   @override
+  Future<List<HealthData>> history({int count = 100}) async {
+    // Synthesize a plausible past series (local walk, doesn't disturb the live
+    // baselines) so analytics has a full window even before the buffer fills.
+    final now = DateTime.now();
+    var hr = _hr;
+    var spo2 = _spo2;
+    final out = <HealthData>[];
+    for (var i = count - 1; i >= 0; i--) {
+      hr = (hr + (_rng.nextDouble() - 0.5) * 3.2).clamp(58, 104);
+      spo2 = (spo2 + (_rng.nextDouble() - 0.5) * 0.6).clamp(94, 100);
+      out.add(HealthData(
+        heartRate: hr.round(),
+        spo2: double.parse(spo2.toStringAsFixed(1)),
+        spo2Valid: true,
+        timestamp: now.subtract(Duration(seconds: i * 2)),
+        acceleration: const Acceleration(x: 0, y: 0, z: 1),
+        gps: const GpsPoint(
+          latitude: _baseLat,
+          longitude: _baseLng,
+          satellites: 8,
+        ),
+      ));
+    }
+    return out;
+  }
+
+  @override
   Future<void> start() async {
     // Prime a short history so the analytics charts aren't empty on first paint.
     final now = DateTime.now();
@@ -102,7 +129,7 @@ class MockSensorSource implements SensorSource {
       spo2Valid: true,
       timestamp: at,
       acceleration: const Acceleration(x: 2.6, y: 1.9, z: 2.9),
-      gps: GpsPoint(
+      gps: const GpsPoint(
         latitude: _baseLat,
         longitude: _baseLng,
         satellites: 9,

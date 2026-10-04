@@ -2,9 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../core/app_colors.dart';
 import '../core/app_gradients.dart';
+import '../providers/theme_provider.dart';
 
 /// The atmospheric backdrop for every screen: a deep navy gradient with three
 /// softly-lit orbs drifting on slow Lissajous paths. Purely decorative and
@@ -38,8 +40,21 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   @override
   Widget build(BuildContext context) {
+    // AnimatedBackground reads AppColors/AppGradients statically and is placed
+    // as a `const` child in GlassScaffold, so a parent rebuild alone won't
+    // refresh it. Depending on ThemeProvider makes this element rebuild when
+    // the light/dark palette is swapped, so the whole backdrop re-reads the
+    // new palette instead of keeping the stale (dark) gradient.
+    context.watch<ThemeProvider>();
+
+    // Light mode is a clean, flat theme: a plain white backdrop with no
+    // gradient and no drifting orbs. The glass/orb treatment is dark-mode only.
+    if (AppColors.isLight) {
+      return ColoredBox(color: AppColors.abyss);
+    }
+
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: AppGradients.background),
+      decoration: BoxDecoration(gradient: AppGradients.background),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final w = constraints.maxWidth;

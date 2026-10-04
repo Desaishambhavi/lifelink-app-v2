@@ -30,6 +30,11 @@ class SupabaseSensorSource implements SensorSource {
   // so we seed this from the historical GPS table and reuse it whenever a live
   // reading has no fix.
   GpsPoint? _lastGoodGps;
+  // Last genuine heart-rate / SpO2 readings, carried forward over drop-out rows
+  // (the ESP32 frequently logs HR 0 and marks SpO2 invalid) so the live display
+  // never blanks out.
+  int? _lastGoodHr;
+  double? _lastGoodSpo2;
   static const _gpsFallbackTable = 'device_sensor_data';
 
   @override
@@ -48,6 +53,23 @@ class SupabaseSensorSource implements SensorSource {
   }
 
   @override
+  Future<List<HealthData>> history({int count = 100}) async {
+    try {
+      // One-off read of the newest [count] rows (descending), reversed to run
+      // oldest→newest. Read-only — no change to the sensor schema.
+      final rows = await _client
+          .from(AppConfig.sensorTable)
+          .select()
+          .order('created_at', ascending: false)
+          .limit(count);
+      return rows.map(_map).toList().reversed.toList();
+    } catch (_) {
+      // Fall back to whatever the live buffer holds if the query fails.
+      return recent(count);
+    }
+  }
+
+  @override
   Future<void> start() async {
     await _loadLastKnownGps();
 
@@ -62,15 +84,25 @@ class SupabaseSensorSource implements SensorSource {
       _history
         ..clear()
         ..addAll(rows.map(_map).toList().reversed);
-      // Remember the newest genuine fix seen in this batch, if any.
+      // Remember the newest genuine values in this batch (oldest→newest, so the
+      // most recent good one wins) to carry forward over drop-out rows.
       for (final r in _history) {
         if (r.gps.hasFix) _lastGoodGps = r.gps;
+        if (r.heartRate > 0) _lastGoodHr = r.heartRate;
+        if (r.spo2 > 70 && r.spo2 <= 100) _lastGoodSpo2 = r.spo2;
       }
       if (_history.isNotEmpty) {
         var latest = _history.last;
-        // No live fix → fall back to the last known genuine location.
+        // Carry forward the last known good values when the newest row is a
+        // sensor drop-out, so "live" vitals always show a real reading.
         if (!latest.gps.hasFix && _lastGoodGps != null) {
           latest = latest.copyWith(gps: _lastGoodGps);
+        }
+        if (latest.heartRate == 0 && _lastGoodHr != null) {
+          latest = latest.copyWith(heartRate: _lastGoodHr);
+        }
+        if ((latest.spo2 <= 70 || latest.spo2 > 100) && _lastGoodSpo2 != null) {
+          latest = latest.copyWith(spo2: _lastGoodSpo2);
         }
         _latest = latest;
         if (!_vitalsController.isClosed) _vitalsController.add(_latest);
@@ -103,8 +135,8 @@ class SupabaseSensorSource implements SensorSource {
           .neq('gps_latitude', 0)
           .order('created_at', ascending: false)
           .limit(1);
-      if (rows is List && rows.isNotEmpty) {
-        final r = rows.first as Map<String, dynamic>;
+      if (rows.isNotEmpty) {
+        final r = rows.first;
         final lat = (r['gps_latitude'] as num?)?.toDouble() ?? 0;
         final lng = (r['gps_longitude'] as num?)?.toDouble() ?? 0;
         if (lat != 0 || lng != 0) {

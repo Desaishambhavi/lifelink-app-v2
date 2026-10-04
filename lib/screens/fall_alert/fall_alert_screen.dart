@@ -80,11 +80,11 @@ class _FallAlertScreenState extends State<FallAlertScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF3A0A12), AppColors.abyss],
+            colors: [const Color(0xFF3A0A12), AppColors.abyss],
           ),
         ),
         child: SafeArea(
@@ -114,7 +114,7 @@ class _FallAlertScreenState extends State<FallAlertScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'Sending an emergency alert in',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -122,7 +122,7 @@ class _FallAlertScreenState extends State<FallAlertScreen> {
                   style: const TextStyle(
                       color: AppColors.danger, fontSize: 64, fontWeight: FontWeight.w800),
                 ),
-                const Text('seconds',
+                Text('seconds',
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 13)),
                 const Spacer(),
                 GlassButton(

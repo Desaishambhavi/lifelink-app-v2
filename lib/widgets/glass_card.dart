@@ -36,42 +36,71 @@ class GlassCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(radius);
+    final light = AppColors.isLight;
 
-    final panel = ClipRRect(
-      borderRadius: borderRadius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
+    // Light mode is a clean, flat theme: solid light cards with a hairline
+    // border and a soft shadow — not the dark-veil frosted glass, which only
+    // reads correctly over the dark backdrop.
+    final Widget panel = light
+        ? ClipRRect(
             borderRadius: borderRadius,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: highlight
-                  ? [AppColors.white(0.18), AppColors.white(0.05)]
-                  : [AppColors.white(0.10), AppColors.white(0.03)],
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                borderRadius: borderRadius,
+                color: AppColors.deep, // #FFFFFF surface in the light palette
+                border: Border.all(
+                  color: highlight
+                      ? const Color(0xFFD6E0EE)
+                      : AppColors.glassStroke,
+                  width: 1,
+                ),
+              ),
+              child: child,
             ),
-            border: Border.all(
-              color: highlight ? AppColors.white(0.28) : AppColors.glassStroke,
-              width: 1,
+          )
+        : ClipRRect(
+            borderRadius: borderRadius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+              child: Container(
+                padding: padding,
+                decoration: BoxDecoration(
+                  borderRadius: borderRadius,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: highlight
+                        ? [AppColors.white(0.18), AppColors.white(0.05)]
+                        : [AppColors.white(0.10), AppColors.white(0.03)],
+                  ),
+                  border: Border.all(
+                    color: highlight ? AppColors.white(0.28) : AppColors.glassStroke,
+                    width: 1,
+                  ),
+                ),
+                child: child,
+              ),
             ),
-          ),
-          child: child,
-        ),
-      ),
-    );
+          );
 
     final shadowed = DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         boxShadow: [
-          BoxShadow(
-            color: AppColors.ink.withValues(alpha: 0.45),
-            blurRadius: 30,
-            spreadRadius: -6,
-            offset: const Offset(0, 18),
-          ),
+          light
+              ? BoxShadow(
+                  color: const Color(0xFF0B2545).withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  spreadRadius: -8,
+                  offset: const Offset(0, 12),
+                )
+              : BoxShadow(
+                  color: AppColors.ink.withValues(alpha: 0.45),
+                  blurRadius: 30,
+                  spreadRadius: -6,
+                  offset: const Offset(0, 18),
+                ),
         ],
       ),
       child: panel,

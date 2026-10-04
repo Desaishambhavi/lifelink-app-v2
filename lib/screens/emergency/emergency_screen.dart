@@ -88,7 +88,7 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                   ? 'Your emergency contact has been notified with your live location.'
                   : 'Press and hold the button for a moment to alert your emergency contact.',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.4),
             ),
             const Spacer(),
             _HoldButton(controller: _hold, raised: _raised, onCancel: () {
@@ -110,14 +110,14 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: AppColors.glassStroke),
                         ),
-                        child: const Icon(Icons.person_rounded, color: AppColors.mist),
+                        child: Icon(Icons.person_rounded, color: AppColors.mist),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('WILL ALERT',
+                            Text('WILL ALERT',
                                 style: TextStyle(
                                     color: AppColors.textTertiary,
                                     fontSize: 10.5,
@@ -128,11 +128,11 @@ class _EmergencyScreenState extends State<EmergencyScreen>
                               profile.emergencyContactName.isEmpty
                                   ? 'Emergency contact'
                                   : profile.emergencyContactName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 15),
                             ),
                             Text(profile.emergencyContactPhone,
-                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                           ],
                         ),
                       ),

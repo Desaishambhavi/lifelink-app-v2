@@ -72,7 +72,7 @@ class MockReminderRepository implements ReminderRepository {
         dosage: '1 capsule',
         hour: 9,
         minute: 0,
-        repeat: ReminderRepeat.daily,
+        days: const {1, 2, 3, 4, 5, 6, 7},
         createdAt: now,
       ),
       MedicationReminder(
@@ -81,7 +81,7 @@ class MockReminderRepository implements ReminderRepository {
         dosage: '500 mg',
         hour: 21,
         minute: 30,
-        repeat: ReminderRepeat.daily,
+        days: const {1, 2, 3, 4, 5, 6, 7},
         createdAt: now,
       ),
     ];

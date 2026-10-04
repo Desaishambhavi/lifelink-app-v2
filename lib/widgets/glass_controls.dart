@@ -254,7 +254,7 @@ class SectionHeader extends StatelessWidget {
             onTap: onAction,
             child: Text(
               action!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.mist,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,

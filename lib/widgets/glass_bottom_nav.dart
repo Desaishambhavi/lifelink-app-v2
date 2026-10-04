@@ -73,10 +73,10 @@ class GlassBottomNav extends StatelessWidget {
       onTap: () => onTap(i),
       pressedScale: 0.92,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
+        duration: const Duration(milliseconds: 240),
         curve: Curves.easeOutCubic,
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 3),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.white(0.12) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
@@ -85,31 +85,33 @@ class GlassBottomNav extends StatelessWidget {
             width: 1,
           ),
         ),
+        // Flexible + fade keeps the selected label from ever overflowing its
+        // slot (which produced the yellow/black overflow stripe).
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               item.icon,
-              size: 21,
-              color: selected ? AppColors.frost : AppColors.textTertiary,
+              size: 22,
+              color: selected ? AppColors.frost : AppColors.mist,
             ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              child: selected
-                  ? Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        item.label,
-                        style: const TextStyle(
-                          color: AppColors.frost,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    )
-                  : const SizedBox.shrink(),
-            ),
+            if (selected)
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 7),
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.fade,
+                    style: TextStyle(
+                      color: AppColors.frost,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

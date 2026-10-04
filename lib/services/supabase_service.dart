@@ -28,7 +28,7 @@ class SupabaseService {
 
   /// The sensor client. Reuses the app client when both point at one project.
   SupabaseClient get sensor {
-    final sameProject = AppConfig.sensorSupabaseUrl == AppConfig.supabaseUrl;
+    const sameProject = AppConfig.sensorSupabaseUrl == AppConfig.supabaseUrl;
     if (sameProject && _appReady) return Supabase.instance.client;
     return _sensorClient ??= SupabaseClient(
       AppConfig.sensorSupabaseUrl,

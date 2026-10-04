@@ -6,6 +6,7 @@ import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/report_provider.dart';
+import '../providers/saved_report_provider.dart';
 import '../providers/weekly_trend_provider.dart';
 import '../widgets/glass_bottom_nav.dart';
 import '../widgets/glass_scaffold.dart';
@@ -45,6 +46,7 @@ class _MainShellState extends State<MainShell> {
       context.read<ReminderProvider>().load();
       context.read<NotificationProvider>().load();
       context.read<ReportProvider>().load();
+      context.read<SavedReportProvider>().load();
       context.read<WeeklyTrendProvider>().load();
     });
   }

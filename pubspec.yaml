@@ -50,6 +50,7 @@ dependencies:
   flutter_timezone: ^4.1.1
   syncfusion_flutter_pdf: ^33.2.13
   encrypt: ^5.0.3
+  pointycastle: ^3.9.1
   flutter_secure_storage: ^11.2.0
 
 dev_dependencies:
