@@ -1,20 +1,23 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_colors.dart';
 import '../models/health_data.dart';
 import 'glass_card.dart';
 
-/// A live-location panel rendered as an animated radar rather than a heavy map
-/// tile — no API key, no imagery, and it matches the glass aesthetic. The
-/// wearer sits at the centre; a sweep line rotates continuously and the fix
-/// coordinates update from the sensor feed.
+/// A live-location panel rendered as a calm, animated location beacon rather
+/// than a heavy map tile — no API key, no imagery, and it matches the glass
+/// aesthetic. The wearer sits at the centre as a map-style dot; soft "ping"
+/// ripples radiate outward and the fix coordinates update from the sensor feed.
 class LiveMapPanel extends StatefulWidget {
-  const LiveMapPanel({super.key, required this.gps, this.height = 190});
+  const LiveMapPanel({super.key, required this.gps, this.height = 190, this.timestamp});
 
   final GpsPoint gps;
   final double height;
+  final DateTime? timestamp;
 
   @override
   State<LiveMapPanel> createState() => _LiveMapPanelState();
@@ -27,7 +30,7 @@ class _LiveMapPanelState extends State<LiveMapPanel>
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(vsync: this, duration: const Duration(seconds: 4))
+    _c = AnimationController(vsync: this, duration: const Duration(seconds: 3))
       ..repeat();
   }
 
@@ -37,10 +40,27 @@ class _LiveMapPanelState extends State<LiveMapPanel>
     super.dispose();
   }
 
+  /// Opens the current fix in Google Maps (external app / browser).
+  Future<void> _openInMaps() async {
+    final gps = widget.gps;
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=${gps.latitude},${gps.longitude}',
+    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      // Fall back to the platform default handler if the external app launch
+      // is refused (e.g. no browser/maps app available).
+      await launchUrl(uri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final gps = widget.gps;
-    final fix = gps.hasFix;
+    final live = gps.satellites > 0;
+    final hasLocation = gps.latitude != 0 || gps.longitude != 0;
+    final badge = live
+        ? '${gps.satellites} satellites'
+        : (hasLocation ? 'Last known' : 'Acquiring fix');
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -48,7 +68,7 @@ class _LiveMapPanelState extends State<LiveMapPanel>
         children: [
           Row(
             children: [
-              const Icon(Icons.my_location_rounded, size: 18, color: AppColors.mist),
+              Icon(Icons.my_location_rounded, size: 18, color: AppColors.mist),
               const SizedBox(width: 8),
               Text('Live location', style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
@@ -60,8 +80,8 @@ class _LiveMapPanelState extends State<LiveMapPanel>
                   border: Border.all(color: AppColors.glassStroke),
                 ),
                 child: Text(
-                  fix ? '${gps.satellites} satellites' : 'Acquiring fix',
-                  style: const TextStyle(
+                  badge,
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
@@ -70,6 +90,23 @@ class _LiveMapPanelState extends State<LiveMapPanel>
               ),
             ],
           ),
+          if (widget.timestamp != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded, size: 12, color: AppColors.textTertiary),
+                const SizedBox(width: 5),
+                Text(
+                  'Last recorded at ${DateFormat('d MMM yyyy, h:mm a').format(widget.timestamp!)}',
+                  style: TextStyle(
+                    color: AppColors.textTertiary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
@@ -78,7 +115,7 @@ class _LiveMapPanelState extends State<LiveMapPanel>
               width: double.infinity,
               child: Stack(
                 children: [
-                  const Positioned.fill(
+                  Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -93,7 +130,7 @@ class _LiveMapPanelState extends State<LiveMapPanel>
                     child: AnimatedBuilder(
                       animation: _c,
                       builder: (context, _) =>
-                          CustomPaint(painter: _RadarPainter(_c.value)),
+                          CustomPaint(painter: _LocationPulsePainter(_c.value)),
                     ),
                   ),
                   Positioned(
@@ -108,6 +145,43 @@ class _LiveMapPanelState extends State<LiveMapPanel>
                       ],
                     ),
                   ),
+                  if (hasLocation)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.white(0.10),
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: AppColors.glassStroke),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.map_rounded,
+                                size: 13, color: AppColors.frost),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Open in Maps',
+                              style: TextStyle(
+                                color: AppColors.frost,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (hasLocation)
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: _openInMaps,
+                        behavior: HitTestBehavior.opaque,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -122,7 +196,7 @@ class _LiveMapPanelState extends State<LiveMapPanel>
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textTertiary,
             fontSize: 10,
             fontWeight: FontWeight.w800,
@@ -132,11 +206,11 @@ class _LiveMapPanelState extends State<LiveMapPanel>
         const SizedBox(width: 8),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.frost,
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            fontFeatures: [FontFeature.tabularFigures()],
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
       ],
@@ -144,81 +218,67 @@ class _LiveMapPanelState extends State<LiveMapPanel>
   }
 }
 
-class _RadarPainter extends CustomPainter {
-  _RadarPainter(this.t);
+/// A calm "live location" beacon: a map-style dot at the wearer's position with
+/// soft ping ripples radiating outward over a faint dot grid. No sweep, rings or
+/// crosshair — nothing that reads as tactical/radar.
+class _LocationPulsePainter extends CustomPainter {
+  _LocationPulsePainter(this.t);
   final double t;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final maxR = math.min(size.width, size.height) / 2 * 0.94;
+    final maxR = math.min(size.width, size.height) / 2 * 0.9;
 
-    final grid = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..color = AppColors.white(0.06);
-
-    // Range rings + crosshair.
-    for (final f in const [0.4, 0.7, 1.0]) {
-      canvas.drawCircle(center, maxR * f, grid);
-    }
-    canvas.drawLine(
-        Offset(center.dx - maxR, center.dy), Offset(center.dx + maxR, center.dy), grid);
-    canvas.drawLine(
-        Offset(center.dx, center.dy - maxR), Offset(center.dx, center.dy + maxR), grid);
-
-    // Sweep trail.
-    final angle = t * 2 * math.pi;
-    final sweep = Path()
-      ..moveTo(center.dx, center.dy)
-      ..arcTo(Rect.fromCircle(center: center, radius: maxR), angle - 0.6, 0.6, false)
-      ..close();
-    canvas.drawPath(
-      sweep,
-      Paint()
-        ..shader = SweepGradient(
-          startAngle: angle - 0.6,
-          endAngle: angle,
-          colors: [AppColors.mist.withValues(alpha: 0), AppColors.mist.withValues(alpha: 0.28)],
-          transform: GradientRotation(0),
-        ).createShader(Rect.fromCircle(center: center, radius: maxR)),
-    );
-    // Leading edge line.
-    canvas.drawLine(
-      center,
-      center + Offset(math.cos(angle) * maxR, math.sin(angle) * maxR),
-      Paint()
-        ..strokeWidth = 1.5
-        ..color = AppColors.mist.withValues(alpha: 0.55),
-    );
-
-    // Fixed reference blips.
-    for (final b in const [Offset(0.62, 0.3), Offset(0.3, 0.68), Offset(0.75, 0.66)]) {
-      final p = Offset(b.dx * size.width, b.dy * size.height);
-      canvas.drawCircle(p, 2.4, Paint()..color = AppColors.steel.withValues(alpha: 0.7));
+    // Faint dot grid — reads as a quiet map surface rather than a radar screen.
+    final dot = Paint()..color = AppColors.white(0.05);
+    const gap = 26.0;
+    for (double y = gap / 2; y < size.height; y += gap) {
+      for (double x = gap / 2; x < size.width; x += gap) {
+        canvas.drawCircle(Offset(x, y), 1.1, dot);
+      }
     }
 
-    // Pulsing centre marker (the wearer).
-    final pulse = (t * 1.6) % 1;
+    // Expanding location-ping ripples (three, phase-staggered so one is always
+    // radiating). Each fades and thins as it grows.
+    for (var i = 0; i < 3; i++) {
+      final p = (t + i / 3) % 1.0;
+      final radius = maxR * p;
+      final fade = (1 - p);
+      if (radius <= 0) continue;
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2 * fade + 0.5
+          ..color = AppColors.mist.withValues(alpha: fade * 0.5),
+      );
+    }
+
+    // Soft glow beneath the marker.
     canvas.drawCircle(
       center,
-      maxR * 0.16 * pulse + 4,
+      18,
       Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = AppColors.frost.withValues(alpha: (1 - pulse) * 0.6),
+        ..color = AppColors.frost.withValues(alpha: 0.16)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
     );
-    canvas.drawCircle(center, 5, Paint()..color = AppColors.frost);
+
+    // Central location dot: an accent ring with a dark core — the familiar
+    // "you are here" map marker.
+    canvas.drawCircle(center, 9, Paint()..color = AppColors.frost);
     canvas.drawCircle(
       center,
-      5,
+      9,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
+        ..strokeWidth = 2.5
         ..color = AppColors.steel,
     );
+    canvas.drawCircle(center, 3.4, Paint()..color = AppColors.abyss);
   }
 
   @override
-  bool shouldRepaint(_RadarPainter old) => old.t != t;
+  bool shouldRepaint(_LocationPulsePainter old) => old.t != t;
 }

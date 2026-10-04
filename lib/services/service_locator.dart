@@ -38,8 +38,6 @@ class Services {
     if (AppConfig.useSupabaseAppData) {
       auth = SupabaseAuthService();
       profiles = SupabaseProfileRepository();
-      reminders = SupabaseReminderRepository();
-      notifications = SupabaseNotificationRepository();
       reports = SupabaseReportRepository();
       emergencies = SupabaseEmergencyRepository();
     } else {
@@ -47,11 +45,15 @@ class Services {
       await mockAuth.restore();
       auth = mockAuth;
       profiles = MockProfileRepository();
-      reminders = MockReminderRepository();
-      notifications = MockNotificationRepository();
       reports = MockReportRepository();
       emergencies = MockEmergencyRepository();
     }
+
+    // Reminders and notifications have no table in the production database and
+    // (by design) we make no schema changes there, so they persist on-device
+    // via SharedPreferences regardless of backend mode.
+    reminders = MockReminderRepository();
+    notifications = MockNotificationRepository();
 
     sensor = AppConfig.useSupabaseSensorData
         ? SupabaseSensorSource()

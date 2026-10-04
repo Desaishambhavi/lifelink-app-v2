@@ -113,6 +113,23 @@ class HealthData {
         'gps': gps.toMap(),
       };
 
+  HealthData copyWith({
+    int? heartRate,
+    double? spo2,
+    bool? spo2Valid,
+    DateTime? timestamp,
+    Acceleration? acceleration,
+    GpsPoint? gps,
+  }) =>
+      HealthData(
+        heartRate: heartRate ?? this.heartRate,
+        spo2: spo2 ?? this.spo2,
+        spo2Valid: spo2Valid ?? this.spo2Valid,
+        timestamp: timestamp ?? this.timestamp,
+        acceleration: acceleration ?? this.acceleration,
+        gps: gps ?? this.gps,
+      );
+
   /// A neutral placeholder used before the first reading arrives.
   factory HealthData.empty() => HealthData(
         heartRate: 0,

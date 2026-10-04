@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../core/app_colors.dart';
 import '../models/health_data.dart';
@@ -22,6 +23,7 @@ class VitalCard extends StatelessWidget {
     required this.trend,
     this.decimals = 0,
     this.onTap,
+    this.timestamp,
   });
 
   final String title;
@@ -35,6 +37,7 @@ class VitalCard extends StatelessWidget {
   final List<double> trend;
   final int decimals;
   final VoidCallback? onTap;
+  final DateTime? timestamp;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +60,7 @@ class VitalCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -86,7 +89,7 @@ class VitalCard extends StatelessWidget {
                   AnimatedCounter(
                     value: value,
                     decimals: decimals,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.frost,
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
@@ -95,7 +98,7 @@ class VitalCard extends StatelessWidget {
                   ),
                   Text(
                     unit,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textTertiary,
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -110,6 +113,17 @@ class VitalCard extends StatelessWidget {
           Sparkline(values: trend, color: AppColors.mist, height: 30),
           const SizedBox(height: 6),
           StatusPill.vital(status),
+          if (timestamp != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Last recorded at ${DateFormat('d MMM yyyy, h:mm a').format(timestamp!)}',
+              style: TextStyle(
+                color: AppColors.textTertiary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );

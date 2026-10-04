@@ -20,9 +20,9 @@ class AppConfig {
   // ---------------------------------------------------------------------------
   // While these are false the app uses mock services (no network, dummy data).
   // Enable each independently once its credentials are filled in below.
-  static const bool useSupabaseAppData = true; // profiles, reminders, alerts
-  static const bool useSupabaseSensorData = false; // live vitals stream
-  static const bool useGeminiAi = false; // real Gemini calls
+  static const bool useSupabaseAppData = true; // profiles, reports, alerts
+  static const bool useSupabaseSensorData = true; // live vitals from sensor_logs
+  static const bool useGeminiAi = true; // gemini-proxy deployed with key secret
 
   /// Convenience: true only when the app should attempt any Supabase init.
   static bool get supabaseEnabled =>
@@ -34,9 +34,9 @@ class AppConfig {
   // TODO: paste your APP Supabase project URL + anon key, then set
   //       useSupabaseAppData = true. The anon key is public and safe to ship
   //       (protect data with Row Level Security).
-  static const String supabaseUrl = 'https://ihoxssnrgbxkqossblrx.supabase.co';
+  static const String supabaseUrl = 'https://bfhraobrnaifvuyscoim.supabase.co';
   static const String supabaseAnonKey =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlob3hzc25yZ2J4a3Fvc3NibHJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTIwODksImV4cCI6MjEwMzkyODA4OX0.AxYq5PbQm1PmK2jGGOSXDAVNYiT5jAg-gZWRTxdv51E';
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmaHJhb2JybmFpZnZ1eXNjb2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Nzk3NzYsImV4cCI6MjA5NDM1NTc3Nn0.CWsxxBIacpKj85z0C_Le5i4Pfze0a1mlXdVUE007zL4';
 
   // ---------------------------------------------------------------------------
   // SENSOR SUPABASE PROJECT  (SEPARATE — your existing ESP32 database)
@@ -44,9 +44,13 @@ class AppConfig {
   // Kept deliberately separate so this app NEVER touches your existing sensor
   // data. Point it at your real project, set the table/columns to match your
   // schema, then set useSupabaseSensorData = true.
+  // Same project as the app data here: profiles, reports, SOS and the ESP32
+  // sensor tables all live in one Supabase project. SupabaseService detects the
+  // match and reuses the single authenticated client.
   static const String sensorSupabaseUrl =
-      'https://YOUR-SENSOR-PROJECT.supabase.co';
-  static const String sensorSupabaseAnonKey = 'YOUR_SENSOR_ANON_KEY';
+      'https://bfhraobrnaifvuyscoim.supabase.co';
+  static const String sensorSupabaseAnonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmaHJhb2JybmFpZnZ1eXNjb2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Nzk3NzYsImV4cCI6MjA5NDM1NTc3Nn0.CWsxxBIacpKj85z0C_Le5i4Pfze0a1mlXdVUE007zL4';
 
   // Table the live vitals stream reads from. `sensor_logs` is the richest
   // (heart rate + SpO2 + accel + GPS); switch to `device_readings` or
@@ -68,7 +72,7 @@ class AppConfig {
   // Recommended: keep the real key server-side in a Supabase Edge Function
   // proxy and point `geminiProxyUrl` at it, so the key never ships in the app.
   static const String geminiProxyUrl =
-      'https://YOUR-APP-PROJECT.functions.supabase.co/gemini-proxy';
+      'https://bfhraobrnaifvuyscoim.functions.supabase.co/gemini-proxy';
   static const String geminiModel = 'gemini-2.5-flash';
 
   // ---------------------------------------------------------------------------

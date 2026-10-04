@@ -78,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   max: 160,
                   status: latest.heartRateStatus,
                   trend: hrTrend,
+                  timestamp: latest.timestamp,
                 ),
               ),
               const SizedBox(width: 14),
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: latest.spo2,
                   unit: 'SpO2 %',
                   icon: Icons.air_rounded,
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [AppColors.frost, AppColors.steel],
@@ -96,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   max: 100,
                   status: latest.spo2Status,
                   trend: spo2Trend,
+                  timestamp: latest.timestamp,
                 ),
               ),
             ],
@@ -104,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 16),
         Entrance(
           delay: const Duration(milliseconds: 140),
-          child: LiveMapPanel(gps: latest.gps),
+          child: LiveMapPanel(gps: latest.gps, timestamp: latest.timestamp),
         ),
         const SizedBox(height: 16),
         Entrance(
@@ -120,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
           delay: const Duration(milliseconds: 260),
           child: _QuickActions(
             onSos: () => Navigator.of(context).pushNamed(AppRoutes.emergency),
-            onTestFall: () => context.read<HealthProvider>().triggerFallDemo(),
           ),
         ),
       ],
@@ -158,7 +159,7 @@ class _StatusHero extends StatelessWidget {
                           color: AppColors.good, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 8),
-                    const Text('LIVE MONITORING',
+                    Text('LIVE MONITORING',
                         style: TextStyle(
                           color: AppColors.textTertiary,
                           fontSize: 11,
@@ -173,7 +174,7 @@ class _StatusHero extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   'Continuously tracking your heart rate, oxygen and motion.',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.textSecondary, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 12),
@@ -212,7 +213,7 @@ class _AiInsightCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome_outlined, size: 18, color: AppColors.mist),
+              Icon(Icons.auto_awesome_outlined, size: 18, color: AppColors.mist),
               const SizedBox(width: 8),
               Text('AI insight', style: Theme.of(context).textTheme.titleMedium),
               const Spacer(),
@@ -237,7 +238,7 @@ class _AiInsightCard extends StatelessWidget {
                     key: const ValueKey('empty'),
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Get a plain-language reading of your current vitals, '
                         'generated on demand.',
                         style: TextStyle(
@@ -258,7 +259,7 @@ class _AiInsightCard extends StatelessWidget {
                     children: [
                       Text(
                         analysis!,
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: AppColors.textPrimary, fontSize: 13.5, height: 1.55),
                       ),
                       const SizedBox(height: 14),
@@ -279,64 +280,43 @@ class _AiInsightCard extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onSos, required this.onTestFall});
+  const _QuickActions({required this.onSos});
   final VoidCallback onSos;
-  final VoidCallback onTestFall;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: GlassCard(
-            onTap: onSos,
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+    return GlassCard(
+      onTap: onSos,
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.danger.withValues(alpha: 0.16),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+            ),
+            child: const Icon(Icons.sos_rounded, color: AppColors.danger),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.danger.withValues(alpha: 0.16),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
-                  ),
-                  child: const Icon(Icons.sos_rounded, color: AppColors.danger),
-                ),
-                const SizedBox(height: 12),
-                const Text('Emergency SOS',
+                Text('Emergency SOS',
                     style: TextStyle(
-                        color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 13)),
+                        color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text('Alert your emergency contact now',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5)),
               ],
             ),
           ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: GlassCard(
-            onTap: onTestFall,
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: Column(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: AppColors.white(0.06),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.glassStroke),
-                  ),
-                  child: const Icon(Icons.warning_amber_rounded, color: AppColors.mist),
-                ),
-                const SizedBox(height: 12),
-                const Text('Test fall alert',
-                    style: TextStyle(
-                        color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 13)),
-              ],
-            ),
-          ),
-        ),
-      ],
+          Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+        ],
+      ),
     );
   }
 }

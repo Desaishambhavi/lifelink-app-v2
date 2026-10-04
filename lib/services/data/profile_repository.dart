@@ -52,8 +52,15 @@ class MockProfileRepository implements ProfileRepository {
 }
 
 /// Profile stored in the Supabase `users` table, keyed on the signed-in email.
+///
+/// The production `users` table has no `emergency_contact_name` column and we
+/// make no schema changes, so that single field is cached on-device while every
+/// other field round-trips through the database.
 class SupabaseProfileRepository implements ProfileRepository {
   final _client = SupabaseService.instance.app;
+
+  // Local overlay for the one column the DB doesn't have.
+  static const _contactNameKey = 'll_emergency_contact_name';
 
   String? get _email => _client.auth.currentUser?.email;
 
@@ -67,12 +74,36 @@ class SupabaseProfileRepository implements ProfileRepository {
         .eq('email', email)
         .maybeSingle();
     if (row == null) return null;
-    return UserProfile.fromMap(email, row);
+
+    var profile = UserProfile.fromMap(email, row);
+    final prefs = await SharedPreferences.getInstance();
+    final cachedName = prefs.getString(_contactNameKey);
+    if (cachedName != null && cachedName.isNotEmpty) {
+      profile = profile.copyWith(emergencyContactName: cachedName);
+    }
+    return profile;
   }
 
   @override
   Future<void> save(UserProfile profile) async {
-    final data = profile.toMap()..['email'] = profile.email;
-    await _client.from('users').upsert(data, onConflict: 'email');
+    // Cache the field the DB can't store.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_contactNameKey, profile.emergencyContactName);
+
+    // Write only columns that exist in the production table.
+    final data = profile.toMap()..remove('emergency_contact_name');
+
+    // Update the existing row; insert only if this user has no profile row yet.
+    // Avoids upsert, which would need a UNIQUE(email) constraint we don't touch.
+    final existing = await _client
+        .from('users')
+        .select('email')
+        .eq('email', profile.email)
+        .maybeSingle();
+    if (existing == null) {
+      await _client.from('users').insert(data);
+    } else {
+      await _client.from('users').update(data).eq('email', profile.email);
+    }
   }
 }

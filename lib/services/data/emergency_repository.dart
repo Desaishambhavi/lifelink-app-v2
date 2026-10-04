@@ -25,12 +25,12 @@ class MockEmergencyRepository implements EmergencyRepository {
 /// SOS events written to the Supabase `emergency_alerts` table.
 class SupabaseEmergencyRepository implements EmergencyRepository {
   final _client = SupabaseService.instance.app;
-  String? get _email => _client.auth.currentUser?.email;
 
   @override
   Future<void> raise(EmergencyAlert alert) async {
+    // The production emergency_alerts table has no user_email column, so we
+    // insert only the columns it actually has (matching the original app).
     await _client.from('emergency_alerts').insert({
-      'user_email': _email,
       'message': alert.message,
       'acknowledged': false,
       'event_timestamp': alert.timestamp.toIso8601String(),
