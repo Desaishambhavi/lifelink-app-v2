@@ -8,7 +8,6 @@ import 'data/notification_repository.dart';
 import 'data/profile_repository.dart';
 import 'data/reminder_repository.dart';
 import 'data/report_repository.dart';
-import 'data/saved_report_repository.dart';
 import 'sensor/mock_sensor_source.dart';
 import 'sensor/sensor_source.dart';
 import 'sensor/supabase_sensor_source.dart';
@@ -28,7 +27,6 @@ class Services {
   static late final NotificationRepository notifications;
   static late final ReportRepository reports;
   static late final EmergencyRepository emergencies;
-  static final SavedReportRepository savedReports = SavedReportRepository();
   static final TtsService tts = TtsService();
 
   static Future<void> init() async {

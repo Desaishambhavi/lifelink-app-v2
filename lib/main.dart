@@ -13,7 +13,6 @@ import 'providers/notification_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/report_provider.dart';
-import 'providers/saved_report_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/weekly_trend_provider.dart';
 import 'screens/auth/login_screen.dart';
@@ -54,7 +53,6 @@ class LifeLinkApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
-        ChangeNotifierProvider(create: (_) => SavedReportProvider()),
         ChangeNotifierProvider(create: (_) => WeeklyTrendProvider()),
         ChangeNotifierProvider(create: (_) => EmergencyProvider()),
         ChangeNotifierProvider(create: (_) => AnalyticsProvider()),

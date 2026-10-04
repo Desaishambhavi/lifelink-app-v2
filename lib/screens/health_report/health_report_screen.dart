@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../../core/app_colors.dart';
 import '../../models/health_report.dart';
 import '../../providers/report_provider.dart';
-import '../../providers/saved_report_provider.dart';
 import '../../services/security/report_encryption_service.dart';
 import '../../services/service_locator.dart';
 import '../../widgets/entrance.dart';
@@ -61,46 +60,6 @@ class _HealthReportScreenState extends State<HealthReportScreen> {
       language: _language,
     );
 
-    final report = reports.current;
-    // Only offer to save a genuine summary (not an error placeholder).
-    if (!mounted ||
-        report == null ||
-        report.status != ReportStatus.ready ||
-        report.summary.startsWith('AI is temporarily unavailable')) {
-      return;
-    }
-    await _askSaveToProfile(report);
-  }
-
-  Future<void> _askSaveToProfile(HealthReport report) async {
-    final saved = context.read<SavedReportProvider>();
-    if (saved.isSaved(report.id)) return;
-    final messenger = ScaffoldMessenger.of(context);
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.deep,
-        title: const Text('Save to profile?'),
-        content: const Text(
-            'Keep this report and its summary on your profile for quick access later?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Not now'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (yes == true) {
-      await saved.add(report);
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Saved to your profile')),
-      );
-    }
   }
 
   @override
@@ -347,17 +306,8 @@ class _SummaryCardState extends State<_SummaryCard> {
     }
   }
 
-  Future<void> _saveToProfile() async {
-    final messenger = ScaffoldMessenger.of(context);
-    await context.read<SavedReportProvider>().add(widget.report);
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Saved to your profile')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isSaved = context.watch<SavedReportProvider>().isSaved(widget.report.id);
     return GlassCard(
       highlight: true,
       child: Column(
@@ -389,15 +339,6 @@ class _SummaryCardState extends State<_SummaryCard> {
               style: TextStyle(
                   color: AppColors.textPrimary, fontSize: 13.5, height: 1.55)),
           const SizedBox(height: 16),
-          GlassButton(
-            label: isSaved ? 'Saved to profile' : 'Save to profile',
-            icon: isSaved
-                ? Icons.bookmark_added_rounded
-                : Icons.bookmark_add_outlined,
-            loading: false,
-            onPressed: isSaved ? null : _saveToProfile,
-          ),
-          const SizedBox(height: 10),
           GlassButton(
             label: _exporting ? 'Preparing PDF…' : 'Export as PDF',
             icon: Icons.ios_share_rounded,

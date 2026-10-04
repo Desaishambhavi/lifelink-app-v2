@@ -3,16 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../core/app_colors.dart';
 import '../../core/app_gradients.dart';
-import '../../models/health_report.dart';
 import '../../models/user_profile.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../providers/saved_report_provider.dart';
 import '../../widgets/entrance.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/glass_controls.dart';
 import '../../widgets/glass_text_field.dart';
-import '../../widgets/report_summary_sheet.dart';
 import '../landing/landing_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -22,7 +19,6 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<ProfileProvider>();
     final profile = provider.profile;
-    final saved = context.watch<SavedReportProvider>();
 
     if (provider.loading || profile == null) {
       return Center(child: CircularProgressIndicator(color: AppColors.frost));
@@ -141,16 +137,6 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         ),
-        if (saved.reports.isNotEmpty) ...[
-          const SizedBox(height: 26),
-          const SectionHeader(title: 'Saved reports'),
-          const SizedBox(height: 12),
-          for (final r in saved.reports)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _SavedReportRow(report: r),
-            ),
-        ],
         const SizedBox(height: 24),
         Entrance(
           delay: const Duration(milliseconds: 260),
@@ -184,90 +170,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _SavedReportRow extends StatelessWidget {
-  const _SavedReportRow({required this.report});
-  final HealthReport report;
-
-  Future<void> _confirmRemove(BuildContext context) async {
-    final provider = context.read<SavedReportProvider>();
-    final messenger = ScaffoldMessenger.of(context);
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.deep,
-        title: const Text('Remove from profile?'),
-        content: Text('"${report.title}" will be removed from your saved reports.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Remove', style: TextStyle(color: AppColors.danger)),
-          ),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await provider.remove(report);
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Removed from profile')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      onTap: () => showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (_) => ReportSummarySheet(report: report),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.white(0.06),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.glassStroke),
-            ),
-            child: Icon(Icons.summarize_rounded, color: AppColors.mist, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(report.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: AppColors.frost, fontWeight: FontWeight.w700, fontSize: 14)),
-                const SizedBox(height: 2),
-                Text('${report.language.label} · ${_date(report.createdAt)}',
-                    style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
-              ],
-            ),
-          ),
-          GlassIconButton(
-            icon: Icons.delete_outline_rounded,
-            size: 38,
-            onTap: () => _confirmRemove(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _date(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
-}
 
 class _StatTile extends StatelessWidget {
   const _StatTile({required this.label, required this.value, required this.unit});
